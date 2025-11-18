@@ -58,7 +58,7 @@
     }
   </style>
 
-  <!-- Load Google Maps JS API with callback (no racing) -->
+  <!-- Load Google Maps JS API with callback -->
   <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCLJtsETdc-9JYoDpN9pua3Thz1rBjGmBc&libraries=geometry&callback=initMap"
     defer>
@@ -90,26 +90,17 @@
             south: -47.5,
             west: 166.0,
             east: 179.0
-          },
-          strictBounds: true
+          }
+          // strictBounds removed so dragging works freely
         }
       });
 
       const overlay = document.getElementById("zoneOverlay");
 
-      // Load zones from GeoJSON file with error handling
+      // Load zones from GeoJSON file
       fetch("zones.geojson", { cache: "no-cache" })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error("Failed to load zones.geojson: " + response.status);
-          }
-          return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-          if (!data || !data.features || !Array.isArray(data.features)) {
-            throw new Error("Invalid GeoJSON structure");
-          }
-
           data.features.forEach(feature => {
             const name = feature.properties && feature.properties.name ? feature.properties.name : "Zone";
             const coords = feature.geometry.coordinates[0].map(c => ({ lat: c[1], lng: c[0] }));
@@ -132,7 +123,6 @@
                 fillOpacity: 0.65,
                 strokeWeight: 4
               });
-              // Show just the zone number if present, otherwise full name
               const num = (name.match(/\b(\d+)\b/) || [])[1];
               overlay.textContent = num ? num : name;
               overlay.style.display = "block";
@@ -148,11 +138,6 @@
               map.setOptions({ draggableCursor: null });
             });
           });
-
-          if (zones.length === 0) {
-            console.warn("No zones found in GeoJSON.");
-            document.getElementById("result").textContent = "No zones loaded.";
-          }
         })
         .catch(err => {
           console.error(err);
