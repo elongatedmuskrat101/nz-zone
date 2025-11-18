@@ -3,50 +3,54 @@
 <head>
   <meta charset="utf-8">
   <title>NZ Zone Lookup</title>
-<style>
-  /* Map container */
-  #map {
-    height: 80vh;
-    width: 100%;
-  }
+  <style>
+    /* Map container */
+    #map {
+      height: 80vh;
+      width: 100%;
+    }
 
-  /* Controls container */
-  #controls {
-    margin: 10px;
-  }
+    /* Controls container */
+    #controls {
+      margin: 10px;
+      text-align: center;   /* center the search bar + button */
+    }
 
-  /* Search bar (address input) */
-  #address {
-    font-size: 18px;      /* larger text */
-    padding: 12px;        /* more space inside */
-    width: 400px;         /* wider box */
-  }
+    /* Search bar (address input) */
+    #address {
+      font-size: 18px;      /* larger text */
+      padding: 12px;        /* more space inside */
+      width: 400px;         /* wider box */
+    }
 
-  /* Find Zone button */
-  #controls button {
-    font-size: 18px;      /* larger text */
-    padding: 12px 24px;   /* taller and wider button */
-    margin-left: 10px;    /* space between input and button */
-    cursor: pointer;      /* pointer on hover */
-  }
+    /* Find Zone button */
+    #controls button {
+      font-size: 18px;      /* larger text */
+      padding: 12px 24px;   /* taller and wider button */
+      margin-left: 10px;    /* space between input and button */
+      cursor: pointer;      /* pointer on hover */
+    }
 
-  /* Result text */
-  #result {
-    font-size: 20px;      /* bigger text */
-    font-weight: bold;    /* bold text */
-    margin-top: 10px;     /* space above the message */
-    color: #333;          /* dark grey for readability */
-  }
-</style>
+    /* Result text */
+    #result {
+      font-size: 20px;      /* bigger text */
+      font-weight: bold;    /* bold text */
+      margin-top: 10px;     /* space above the message */
+      color: #333;          /* dark grey for readability */
+      white-space: nowrap;  /* keep text on one line */
+      overflow: hidden;     /* hide overflow if too long */
+      text-align: center;   /* center the repeated text */
+    }
+  </style>
 
   <!-- Load Google Maps JS API (replace YOUR_API_KEY with your real key) -->
   <script async
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCLJtsETdc-9JYoDpN9pua3Thz1rBjGmBc&libraries=geometry">
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=geometry">
   </script>
 </head>
 <body>
   <div id="controls">
-    <input id="address" type="text" placeholder="Enter NZ address" size="40">
+    <input id="address" type="text" placeholder="Enter NZ address">
     <button onclick="lookupZone()">Find Zone</button>
     <p id="result"></p>
   </div>
@@ -56,20 +60,19 @@
     let map, zones = [];
 
     function initMap() {
-  map = new google.maps.Map(document.getElementById("map"), {
-    center: { lat: -41.2, lng: 174.8 }, // center on NZ
-    zoom: 6,
-    restriction: {
-      latLngBounds: {
-        north: -33.0,   // top of NZ
-        south: -47.5,   // bottom of NZ
-        west: 166.0,    // far west
-        east: 179.0     // far east
-      },
-      strictBounds: true
-    }
-  });
-  // Load zones as before...
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: -41.2, lng: 174.8 }, // center on NZ
+        zoom: 6,
+        restriction: {
+          latLngBounds: {
+            north: -33.0,   // top of NZ
+            south: -47.5,   // bottom of NZ
+            west: 166.0,    // far west
+            east: 179.0     // far east
+          },
+          strictBounds: true
+        }
+      });
 
       // Load zones from GeoJSON file
       fetch("zones.geojson")
@@ -110,8 +113,10 @@
             }
           });
 
+          // Repeat the result text across the width
           document.getElementById("result").textContent =
-            inside ? `This address is inside ${inside}` : "This address is outside all zones";
+            inside ? `This address is inside ${inside} `.repeat(20)
+                   : "This address is outside all zones ".repeat(20);
         } else {
           document.getElementById("result").textContent = "Geocode failed: " + status;
         }
