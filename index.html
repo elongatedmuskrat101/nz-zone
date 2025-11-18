@@ -77,6 +77,9 @@
         }
       });
 
+      // InfoWindow for hover
+      const infoWindow = new google.maps.InfoWindow();
+
       // Load zones from GeoJSON file
       fetch("zones.geojson")
         .then(response => response.json())
@@ -92,7 +95,19 @@
               fillOpacity: 0.35,
               map: map
             });
+
             zones.push({ polygon, name: feature.properties.name });
+
+            // Hover events
+            google.maps.event.addListener(polygon, "mouseover", (event) => {
+              infoWindow.setContent(feature.properties.name);
+              infoWindow.setPosition(event.latLng);
+              infoWindow.open(map);
+            });
+
+            google.maps.event.addListener(polygon, "mouseout", () => {
+              infoWindow.close();
+            });
           });
         });
     }
