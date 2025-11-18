@@ -165,6 +165,14 @@
           ]
         ]
       }
-    }
-  ]
-}
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Zone 3 - Wellington" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [175.07078727702054, -41.241138953354636],
+            [175.260117180932, -41.060297273651024],
+           
