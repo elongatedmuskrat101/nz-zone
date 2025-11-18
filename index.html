@@ -24,10 +24,21 @@
     let map, zones = [];
 
     function initMap() {
-      map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: -41.2, lng: 174.8 }, // NZ center
-        zoom: 6
-      });
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: { lat: -41.2, lng: 174.8 }, // center on NZ
+    zoom: 6,
+    restriction: {
+      latLngBounds: {
+        north: -33.0,   // top of NZ
+        south: -47.5,   // bottom of NZ
+        west: 166.0,    // far west
+        east: 179.0     // far east
+      },
+      strictBounds: true
+    }
+  });
+  // Load zones as before...
+}
 
       // Load zones from GeoJSON file
       fetch("zones.geojson")
