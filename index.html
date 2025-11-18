@@ -42,7 +42,7 @@
       text-align: center;
     }
 
-    /* Scrolling footer text */
+    /* Scrolling footer text with truck */
     .scroll-text {
       position: fixed;
       bottom: 0;
@@ -61,14 +61,18 @@
       display: inline-block;
       white-space: nowrap;
       will-change: transform;
-      animation: moveRight 30s linear infinite;
-      padding-right: 100%; /* ensures it fully exits before looping */
+      animation: moveLeft 30s linear infinite; /* slow, right-to-left */
+      padding-left: 100%; /* ensures full exit before looping */
     }
-    @keyframes moveRight {
-      0%   { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
+    @keyframes moveLeft {
+      0%   { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
     }
-    .yellow { color: #CCCC00; } /* darker, more legible yellow */
+    .truck {
+      font-size: 32px;   /* bigger truck emoji */
+      margin-right: 12px; /* space between truck and text */
+    }
+    .yellow { color: #CCCC00; } /* darker yellow */
     .green  { color: green; }
     .blue   { color: blue; }
     .purple { color: purple; }
@@ -92,9 +96,10 @@
 
   <div id="map"></div>
 
-  <!-- Fixed footer scrolling text -->
+  <!-- Fixed footer scrolling text with truck -->
   <div class="scroll-text">
     <div class="scroll-track">
+      <span class="truck">🚚</span>
       <span class="yellow">m</span>
       <span class="green">a</span>
       <span class="blue">d</span>
