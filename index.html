@@ -43,16 +43,18 @@
     }
   </style>
 
-  <!-- Load Google Maps JS API (replace YOUR_API_KEY with your real key) -->
+  <!-- Load Google Maps JS API with your actual key -->
   <script async
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCLJtsETdc-9JYoDpN9pua3Thz1rBjGmBc
-&libraries=geometry">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCLJtsETdc-9JYoDpN9pua3Thz1rBjGmBc&libraries=geometry">
   </script>
 </head>
 <body>
   <div id="controls">
-    <input id="address" type="text" placeholder="Enter NZ address">
-    <button onclick="lookupZone()">Find Zone</button>
+    <!-- Form approach: pressing Enter triggers lookupZone -->
+    <form onsubmit="lookupZone(); return false;">
+      <input id="address" type="text" placeholder="Enter NZ address">
+      <button type="submit">Find Zone</button>
+    </form>
     <p id="result"></p>
   </div>
   <div id="map"></div>
