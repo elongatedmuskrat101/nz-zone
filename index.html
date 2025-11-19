@@ -136,6 +136,7 @@
     let startLocation = null;
     let startZone = null;
     let currentMarker = null; // single, replaceable marker
+    let branchCircles = []; // Array to store branch radius circles
 
     // Branch coordinates
     const branchLocations = [
@@ -241,6 +242,20 @@
           icon: buildingIcon,
           title: branch.title
         });
+
+        // Add 35km radius circle around each branch - now in semi-transparent blue
+        const circle = new google.maps.Circle({
+          strokeColor: '#0066FF',
+          strokeOpacity: 0.4,
+          strokeWeight: 2,
+          fillColor: '#0066FF',
+          fillOpacity: 0.15,
+          map: map,
+          center: { lat: branch.lat, lng: branch.lng },
+          radius: 35000, // 35km in meters
+          clickable: false
+        });
+        branchCircles.push(circle);
       });
 
       // Mark consultants with person emoji labels
