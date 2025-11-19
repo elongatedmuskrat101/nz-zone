@@ -210,7 +210,12 @@
         map.setCenter(startLocation);
         map.setZoom(12);
         checkZone(startLocation, true);
-        checkLocalWarning();
+        // Only check local warning if we have both locations
+        if (destLocation) {
+          checkLocalWarning();
+        } else {
+          document.getElementById("warning").style.display = "none";
+        }
       });
 
       inputOrigin.addEventListener("keydown", (e) => {
@@ -355,57 +360,44 @@
     }
 
     // Check both start and destination locations for local warning
+    // Only show warning if BOTH are local
     function checkLocalWarning() {
       const warningElement = document.getElementById("warning");
       const loadingElement = document.getElementById("loading-warning");
       
-      // If we don't have both locations, just check the start location
-      if (!destLocation) {
-        if (!startLocation) {
-          warningElement.style.display = "none";
-          return;
-        }
-        
-        loadingElement.style.display = "block";
+      // We need both locations to check
+      if (!startLocation || !destLocation) {
         warningElement.style.display = "none";
-        
-        checkLocationLocal(startLocation, (isLocal) => {
-          loadingElement.style.display = "none";
-          warningElement.style.display = isLocal ? "inline-block" : "none";
-        });
-      } else {
-        // Check both locations
-        loadingElement.style.display = "block";
-        warningElement.style.display = "none";
-        
-        let startLocal = false;
-        let destLocal = false;
-        let checksCompleted = 0;
-        
-        const checkComplete = () => {
-          checksCompleted++;
-          if (checksCompleted === 2) {
-            loadingElement.style.display = "none";
-            warningElement.style.display = (startLocal || destLocal) ? "inline-block" : "none";
-          }
-        };
-        
-        // Check start location
-        if (startLocation) {
-          checkLocationLocal(startLocation, (isLocal) => {
-            startLocal = isLocal;
-            checkComplete();
-          });
-        } else {
-          checksCompleted++;
-        }
-        
-        // Check destination location
-        checkLocationLocal(destLocation, (isLocal) => {
-          destLocal = isLocal;
-          checkComplete();
-        });
+        return;
       }
+      
+      loadingElement.style.display = "block";
+      warningElement.style.display = "none";
+      
+      let startLocal = false;
+      let destLocal = false;
+      let checksCompleted = 0;
+      
+      const checkComplete = () => {
+        checksCompleted++;
+        if (checksCompleted === 2) {
+          loadingElement.style.display = "none";
+          // Only show warning if BOTH are local
+          warningElement.style.display = (startLocal && destLocal) ? "inline-block" : "none";
+        }
+      };
+      
+      // Check start location
+      checkLocationLocal(startLocation, (isLocal) => {
+        startLocal = isLocal;
+        checkComplete();
+      });
+      
+      // Check destination location
+      checkLocationLocal(destLocation, (isLocal) => {
+        destLocal = isLocal;
+        checkComplete();
+      });
     }
 
     function lookupZone() {
@@ -418,7 +410,12 @@
         map.setCenter(startLocation);
         map.setZoom(12);
         checkZone(startLocation, true);
-        checkLocalWarning();
+        // Only check local warning if we have both locations
+        if (destLocation) {
+          checkLocalWarning();
+        } else {
+          document.getElementById("warning").style.display = "none";
+        }
       } else {
         const address = document.getElementById("address").value;
         geocoder.geocode({ address, componentRestrictions: { country: "NZ" } },
@@ -429,7 +426,12 @@
               map.setCenter(startLocation);
               map.setZoom(12);
               checkZone(startLocation, true);
-              checkLocalWarning();
+              // Only check local warning if we have both locations
+              if (destLocation) {
+                checkLocalWarning();
+              } else {
+                document.getElementById("warning").style.display = "none";
+              }
             } else {
               document.getElementById("result").textContent =
                 "Geocode failed: " + status;
@@ -523,7 +525,7 @@
           document.getElementById("result").innerHTML =
             `Distance: ${leg.distance.text} | Duration: ${leg.duration.text}${zoneInfo}`;
           
-          // Check if either location is local after route calculation
+          // Check if BOTH locations are local after route calculation
           checkLocalWarning();
         } else {
           document.getElementById("result").textContent =
