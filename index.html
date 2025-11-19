@@ -246,4 +246,40 @@
       });
 
       if (found) {
-        const
+        const repeated = Array(10)
+          .fill(`This address is inside ${found}`)
+          .map(msg => `<span>${msg}</span>`)
+          .join("");
+        document.getElementById("result").innerHTML = repeated;
+      } else {
+        document.getElementById("result").textContent =
+          "This address is outside all zones";
+      }
+    }
+
+    function calcRoute() {
+      const from = document.getElementById("from").value;
+      const to = document.getElementById("to").value;
+
+      const request = {
+        origin: from,
+        destination: to,
+        travelMode: google.maps.TravelMode.DRIVING
+      };
+
+      directionsService.route(request, (result, status) => {
+        if (status === "OK") {
+          directionsRenderer.setDirections(result);
+          const leg = result.routes[0].legs[0];
+          document.getElementById("result").textContent =
+            `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`;
+        } else {
+          document.getElementById("result").textContent =
+            "Route request failed: " + status;
+        }
+      });
+    }
+  </script>
+</body>
+</html>
+
