@@ -64,9 +64,9 @@
     .red    { color: red; }
   </style>
 
-  <!-- Google Maps JS API -->
+  <!-- Google Maps JS API with Places library -->
   <script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCLJtsETdc-9JYoDpN9pua3Thz1rBjGmBc&libraries=geometry&callback=initMap"
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCLJtsETdc-9JYoDpN9pua3Thz1rBjGmBc&libraries=geometry,places&callback=initMap"
     defer>
   </script>
 </head>
@@ -95,6 +95,7 @@
   <script>
     let map;
     let polygons = [];
+    let autocomplete;
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
@@ -108,6 +109,12 @@
             east: 180.0
           }
         }
+      });
+
+      // NZ-only autocomplete
+      const input = document.getElementById("address");
+      autocomplete = new google.maps.places.Autocomplete(input, {
+        componentRestrictions: { country: "nz" }
       });
 
       // Load GeoJSON
@@ -148,7 +155,10 @@
       const geocoder = new google.maps.Geocoder();
       const address = document.getElementById("address").value;
 
-      geocoder.geocode({ address }, (results, status) => {
+      geocoder.geocode({
+        address,
+        componentRestrictions: { country: "NZ" } // restrict to NZ
+      }, (results, status) => {
         if (status !== "OK") {
           document.getElementById("result").textContent = "Geocode failed: " + status;
           return;
