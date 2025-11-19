@@ -99,21 +99,21 @@
 
   <div id="map"></div>
 
-  <!-- Scrolling footer with red truck SVG -->
+  <!-- Scrolling footer with red truck SVG facing left -->
   <div class="scroll-text">
     <div class="scroll-track">
       <span class="truck">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" width="160" height="60" role="img" aria-label="Red semi-truck with long trailer">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" width="160" height="60" role="img" aria-label="Red semi-truck with long trailer" style="transform: scaleX(-1);">
           <!-- Trailer -->
           <rect x="10" y="40" width="200" height="50" rx="6" ry="6" fill="#e10600"/>
           <!-- Hitch -->
           <rect x="210" y="62" width="12" height="6" fill="#e10600"/>
-          <!-- Cab body -->
-          <rect x="222" y="50" width="70" height="40" rx="5" ry="5" fill="#e10600"/>
+          <!-- Cab body (shorter) -->
+          <rect x="222" y="55" width="50" height="30" rx="5" ry="5" fill="#e10600"/>
           <!-- Cab hood -->
-          <polygon points="292,50 312,58 312,90 292,90" fill="#e10600"/>
-          <!-- Window -->
-          <rect x="230" y="55" width="30" height="18" rx="2" ry="2" fill="#ffffff" opacity="0.85"/>
+          <polygon points="272,55 292,63 292,85 272,85" fill="#e10600"/>
+          <!-- Window (shorter) -->
+          <rect x="228" y="60" width="20" height="12" rx="2" ry="2" fill="#ffffff" opacity="0.85"/>
           <!-- Trailer wheels -->
           <circle cx="50" cy="95" r="12" fill="#111"/>
           <circle cx="100" cy="95" r="12" fill="#111"/>
@@ -121,7 +121,7 @@
           <circle cx="200" cy="95" r="12" fill="#111"/>
           <!-- Cab wheels -->
           <circle cx="240" cy="95" r="12" fill="#111"/>
-          <circle cx="285" cy="95" r="12" fill="#111"/>
+          <circle cx="270" cy="95" r="12" fill="#111"/>
         </svg>
       </span>
       <span>m</span><span>a</span><span>d</span><span>e</span>
