@@ -39,7 +39,6 @@
       margin-top: 10px;
       color: #FFFFFF;
       text-align: center;
-      display: none;
       background-color: #FF0000;
       padding: 10px 20px;
       border-radius: 5px;
@@ -121,7 +120,7 @@
 
     <p id="result"></p>
     <div style="text-align: center;">
-      <span id="warning">Warning - Within 35km</span>
+      <span id="warning" style="display: none;">Warning - Local</span>
     </div>
     <p id="loading-warning">Checking road distance to nearest branch...</p>
   </div>
@@ -159,7 +158,8 @@
     let directionsService, directionsRenderer;
     let startLocation = null;
     let startZone = null;
-    let currentMarker = null; // single, replaceable marker
+    let currentMarker = null;
+    let destLocation = null; // Store destination location
 
     // Branch coordinates
     const branchLocations = [
@@ -210,7 +210,7 @@
         map.setCenter(startLocation);
         map.setZoom(12);
         checkZone(startLocation, true);
-        checkLocalWarning(startLocation);
+        checkLocalWarning();
       });
 
       inputOrigin.addEventListener("keydown", (e) => {
@@ -240,7 +240,7 @@
               strokeOpacity: 0.6,
               strokeWeight: 2,
               fillColor: "#FF6666",
-              fillOpacity: 0.2, // softer overlay
+              fillOpacity: 0.2,
               map: map
             });
             polygons.push({ polygon, name });
@@ -308,14 +308,7 @@
     }
 
     // Check if location is within 35km ROAD DISTANCE of any branch
-    function checkLocalWarning(location) {
-      const warningElement = document.getElementById("warning");
-      const loadingElement = document.getElementById("loading-warning");
-      
-      // Hide warning initially, show loading
-      warningElement.style.display = "none";
-      loadingElement.style.display = "block";
-      
+    function checkLocationLocal(location, callback) {
       // Find the closest branch by straight-line distance first
       let closestBranch = null;
       let minStraightLineDistance = Infinity;
@@ -332,8 +325,7 @@
       
       // If the closest branch is more than 50km straight-line, it's definitely not within 35km by road
       if (minStraightLineDistance > 50000) {
-        loadingElement.style.display = "none";
-        warningElement.style.display = "none";
+        callback(false);
         return;
       }
       
@@ -346,26 +338,73 @@
         };
         
         directionsService.route(request, (result, status) => {
-          loadingElement.style.display = "none";
-          
           if (status === "OK") {
             const leg = result.routes[0].legs[0];
             const roadDistance = leg.distance.value; // distance in meters
             
-            // If within 35km (35,000 meters) by road, show warning
-            if (roadDistance <= 35000) {
-              warningElement.style.display = "inline-block";
-            } else {
-              warningElement.style.display = "none";
-            }
+            // If within 35km (35,000 meters) by road, return true
+            callback(roadDistance <= 35000);
           } else {
             console.error("Directions request failed for local check:", status);
-            warningElement.style.display = "none";
+            callback(false);
           }
         });
       } else {
-        loadingElement.style.display = "none";
+        callback(false);
+      }
+    }
+
+    // Check both start and destination locations for local warning
+    function checkLocalWarning() {
+      const warningElement = document.getElementById("warning");
+      const loadingElement = document.getElementById("loading-warning");
+      
+      // If we don't have both locations, just check the start location
+      if (!destLocation) {
+        if (!startLocation) {
+          warningElement.style.display = "none";
+          return;
+        }
+        
+        loadingElement.style.display = "block";
         warningElement.style.display = "none";
+        
+        checkLocationLocal(startLocation, (isLocal) => {
+          loadingElement.style.display = "none";
+          warningElement.style.display = isLocal ? "inline-block" : "none";
+        });
+      } else {
+        // Check both locations
+        loadingElement.style.display = "block";
+        warningElement.style.display = "none";
+        
+        let startLocal = false;
+        let destLocal = false;
+        let checksCompleted = 0;
+        
+        const checkComplete = () => {
+          checksCompleted++;
+          if (checksCompleted === 2) {
+            loadingElement.style.display = "none";
+            warningElement.style.display = (startLocal || destLocal) ? "inline-block" : "none";
+          }
+        };
+        
+        // Check start location
+        if (startLocation) {
+          checkLocationLocal(startLocation, (isLocal) => {
+            startLocal = isLocal;
+            checkComplete();
+          });
+        } else {
+          checksCompleted++;
+        }
+        
+        // Check destination location
+        checkLocationLocal(destLocation, (isLocal) => {
+          destLocal = isLocal;
+          checkComplete();
+        });
       }
     }
 
@@ -379,7 +418,7 @@
         map.setCenter(startLocation);
         map.setZoom(12);
         checkZone(startLocation, true);
-        checkLocalWarning(startLocation);
+        checkLocalWarning();
       } else {
         const address = document.getElementById("address").value;
         geocoder.geocode({ address, componentRestrictions: { country: "NZ" } },
@@ -390,7 +429,7 @@
               map.setCenter(startLocation);
               map.setZoom(12);
               checkZone(startLocation, true);
-              checkLocalWarning(startLocation);
+              checkLocalWarning();
             } else {
               document.getElementById("result").textContent =
                 "Geocode failed: " + status;
@@ -435,13 +474,15 @@
       const geocoder = new google.maps.Geocoder();
 
       if (place && place.geometry) {
-        handleRoute(place.geometry.location);
+        destLocation = place.geometry.location;
+        handleRoute(destLocation);
       } else {
         const to = document.getElementById("to").value;
         geocoder.geocode({ address: to, componentRestrictions: { country: "NZ" } },
           (results, status) => {
             if (status === "OK" && results[0]) {
-              handleRoute(results[0].geometry.location);
+              destLocation = results[0].geometry.location;
+              handleRoute(destLocation);
             } else {
               document.getElementById("result").textContent =
                 "Destination geocode failed: " + status;
@@ -450,18 +491,18 @@
       }
     }
 
-    function handleRoute(destLocation) {
+    function handleRoute(destLoc) {
       // Determine destination zone
       let destZone = null;
       polygons.forEach(p => {
-        if (google.maps.geometry.poly.containsLocation(destLocation, p.polygon)) {
+        if (google.maps.geometry.poly.containsLocation(destLoc, p.polygon)) {
           destZone = p.name;
         }
       });
 
       const request = {
         origin: startLocation,
-        destination: destLocation,
+        destination: destLoc,
         travelMode: google.maps.TravelMode.DRIVING
       };
 
@@ -481,6 +522,9 @@
 
           document.getElementById("result").innerHTML =
             `Distance: ${leg.distance.text} | Duration: ${leg.duration.text}${zoneInfo}`;
+          
+          // Check if either location is local after route calculation
+          checkLocalWarning();
         } else {
           document.getElementById("result").textContent =
             "Route request failed: " + status;
