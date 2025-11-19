@@ -24,17 +24,17 @@
       cursor: pointer;
     }
     #result {
-      font-size: 20px;
-      font-weight: bold;
+      font-size: 32px;       /* larger text */
+      font-weight: bold;     /* bold */
       margin-top: 10px;
       color: #333;
       text-align: center;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      white-space: nowrap;   /* keep everything on one line */
+      overflow: hidden;
     }
     #result span {
-      margin: 0 10px;
+      display: inline-block;
+      margin: 0 20px;        /* spacing between repeats */
     }
 
     /* Scrolling footer text with truck */
@@ -124,6 +124,27 @@
         componentRestrictions: { country: "nz" }
       });
 
+      // Use place_changed event to avoid double-search glitch
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (!place.geometry) return;
+
+        const location = place.geometry.location;
+        new google.maps.Marker({ position: location, map: map });
+        map.setCenter(location);
+        map.setZoom(12);
+
+        checkZone(location);
+      });
+
+      // Allow pressing Enter to trigger lookupZone()
+      input.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          lookupZone();
+        }
+      });
+
       // Load GeoJSON
       fetch("zones.geojson", { cache: "no-cache" })
         .then(res => res.json())
@@ -158,41 +179,35 @@
       return [];
     }
 
+    // Manual search button fallback
     function lookupZone() {
-      const geocoder = new google.maps.Geocoder();
-      const address = document.getElementById("address").value;
-
-      geocoder.geocode({
-        address,
-        componentRestrictions: { country: "NZ" }
-      }, (results, status) => {
-        if (status !== "OK") {
-          document.getElementById("result").textContent = "Geocode failed: " + status;
-          return;
-        }
-
-        const location = results[0].geometry.location;
+      const place = autocomplete.getPlace();
+      if (place && place.geometry) {
+        const location = place.geometry.location;
         new google.maps.Marker({ position: location, map: map });
         map.setCenter(location);
         map.setZoom(12);
+        checkZone(location);
+      }
+    }
 
-        let found = null;
-        polygons.forEach(p => {
-          if (google.maps.geometry.poly.containsLocation(location, p.polygon)) {
-            found = p.name;
-          }
-        });
-
-        if (found) {
-          // Repeat the message across the width (static)
-          const repeated = Array(6).fill(`This address is inside ${found}`)
-            .map(msg => `<span>${msg}</span>`).join("");
-          document.getElementById("result").innerHTML = repeated;
-        } else {
-          document.getElementById("result").textContent =
-            "This address is outside all zones";
+    // Zone check helper
+    function checkZone(location) {
+      let found = null;
+      polygons.forEach(p => {
+        if (google.maps.geometry.poly.containsLocation(location, p.polygon)) {
+          found = p.name;
         }
       });
+
+      if (found) {
+        const repeated = Array(10).fill(`This address is inside ${found}`)
+          .map(msg => `<span>${msg}</span>`).join("");
+        document.getElementById("result").innerHTML = repeated;
+      } else {
+        document.getElementById("result").textContent =
+          "This address is outside all zones";
+      }
     }
   </script>
 </body>
