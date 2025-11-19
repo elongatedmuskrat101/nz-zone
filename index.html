@@ -215,7 +215,7 @@
               strokeOpacity: 0.6,
               strokeWeight: 2,
               fillColor: "#FF6666",
-              fillOpacity: 0.2, // softer overlay
+              fillOpacity: 0.05, // softer overlay
               map: map
             });
             polygons.push({ polygon, name });
@@ -243,12 +243,26 @@
         });
       });
 
-      // Mark consultants with person emoji labels
+      // Mark consultants with person emoji labels and white background
+      const consultantIcon = {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: "#FFFFFF",
+        fillOpacity: 0.9,
+        strokeColor: "#333333",
+        strokeWeight: 1,
+        scale: 15 // Size of the white circle background
+      };
+
       consultantLocations.forEach(c => {
         new google.maps.Marker({
           position: { lat: c.lat, lng: c.lng },
           map: map,
-          label: "👤",
+          icon: consultantIcon,
+          label: {
+            text: "👤",
+            fontSize: "14px",
+            color: "#000000"
+          },
           title: c.title
         });
       });
