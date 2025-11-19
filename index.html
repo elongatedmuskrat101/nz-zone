@@ -183,11 +183,13 @@
       {lat: -43.5833, lng: 172.3833, title: "Consultant - Rolleston"}
     ];
 
-    function initMap() {
-      map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: -40.9, lng: 174.9 },
-        zoom: 5
-      });
+function initMap() {
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: { lat: -40.9, lng: 174.9 },
+    zoom: 5,
+    gestureHandling: "greedy" // allows normal mouse wheel zoom
+  });
+}
 
       directionsService = new google.maps.DirectionsService();
       directionsRenderer = new google.maps.DirectionsRenderer({ map: map });
