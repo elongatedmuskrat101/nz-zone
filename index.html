@@ -33,6 +33,14 @@
       white-space: nowrap;
       overflow: hidden;
     }
+    #warning {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 10px;
+      color: #FF0000;
+      text-align: center;
+      display: none;
+    }
 
     /* Scrolling footer text */
     .scroll-text {
@@ -100,6 +108,7 @@
     </form>
 
     <p id="result"></p>
+    <p id="warning">Warning - Local</p>
   </div>
 
   <div id="map"></div>
@@ -186,6 +195,7 @@
         map.setCenter(startLocation);
         map.setZoom(12);
         checkZone(startLocation, true);
+        checkLocalWarning(startLocation);
       });
 
       inputOrigin.addEventListener("keydown", (e) => {
@@ -215,7 +225,7 @@
               strokeOpacity: 0.6,
               strokeWeight: 2,
               fillColor: "#FF6666",
-              fillOpacity: 0.05, // softer overlay
+              fillOpacity: 0.2, // softer overlay
               map: map
             });
             polygons.push({ polygon, name });
@@ -282,6 +292,30 @@
       return [];
     }
 
+    // Check if location is within 35km of any branch
+    function checkLocalWarning(location) {
+      const warningElement = document.getElementById("warning");
+      let isLocal = false;
+      
+      // Check distance to each branch
+      branchLocations.forEach(branch => {
+        const branchLatLng = new google.maps.LatLng(branch.lat, branch.lng);
+        const distance = google.maps.geometry.spherical.computeDistanceBetween(location, branchLatLng);
+        
+        // If within 35km (35,000 meters), mark as local
+        if (distance <= 35000) {
+          isLocal = true;
+        }
+      });
+      
+      // Show or hide warning
+      if (isLocal) {
+        warningElement.style.display = "block";
+      } else {
+        warningElement.style.display = "none";
+      }
+    }
+
     function lookupZone() {
       const place = autocompleteOrigin.getPlace();
       const geocoder = new google.maps.Geocoder();
@@ -292,6 +326,7 @@
         map.setCenter(startLocation);
         map.setZoom(12);
         checkZone(startLocation, true);
+        checkLocalWarning(startLocation);
       } else {
         const address = document.getElementById("address").value;
         geocoder.geocode({ address, componentRestrictions: { country: "NZ" } },
@@ -302,9 +337,11 @@
               map.setCenter(startLocation);
               map.setZoom(12);
               checkZone(startLocation, true);
+              checkLocalWarning(startLocation);
             } else {
               document.getElementById("result").textContent =
                 "Geocode failed: " + status;
+              document.getElementById("warning").style.display = "none";
             }
           });
       }
