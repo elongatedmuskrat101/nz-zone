@@ -168,7 +168,7 @@
         new google.maps.Marker({ position: startLocation, map: map });
         map.setCenter(startLocation);
         map.setZoom(12);
-        checkZone(startLocation, true); // true: update startZone too
+        checkZone(startLocation, true); // update startZone
       });
 
       input.addEventListener("keydown", function(e) {
@@ -203,7 +203,6 @@
       if (geometry.type === "Polygon") {
         return geometry.coordinates[0].map(c => ({ lat: c[1], lng: c[0] }));
       } else if (geometry.type === "MultiPolygon") {
-        // Flatten all rings and use the outermost ring points for display
         return geometry.coordinates.flat(2).map(c => ({ lat: c[1], lng: c[0] }));
       }
       return [];
@@ -300,15 +299,15 @@
 
                 let zoneInfo = "";
                 if (startZone && destZone) {
-                  zoneInfo = `, Route: ${startZone} → ${destZone}`;
+                  zoneInfo = ` | Zones: ${startZone} to ${destZone}`;
                 } else if (startZone && !destZone) {
-                  zoneInfo = `, Route: ${startZone} → Outside zones`;
+                  zoneInfo = ` | Zones: ${startZone} to Outside zones`;
                 } else if (!startZone && destZone) {
-                  zoneInfo = `, Route: Outside zones → ${destZone}`;
+                  zoneInfo = ` | Zones: Outside zones to ${destZone}`;
                 }
 
                 document.getElementById("result").textContent =
-                  `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}${zoneInfo}`;
+                  `Distance: ${leg.distance.text} | Duration: ${leg.duration.text}${zoneInfo}`;
               } else {
                 document.getElementById("result").textContent =
                   "Route request failed: " + status;
