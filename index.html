@@ -34,6 +34,38 @@
       overflow: hidden;
     }
 
+    /* Toggle switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+      margin: 5px;
+      vertical-align: middle;
+    }
+    .switch input { display: none; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: #2196F3; }
+    input:checked + .slider:before { transform: translateX(26px); }
+
     /* Scrolling footer text */
     .scroll-text {
       position: fixed;
@@ -60,8 +92,6 @@
       0%   { transform: translateX(100%); }
       100% { transform: translateX(-100%); }
     }
-
-    /* Animated color cycling */
     @keyframes colorCycle {
       0%   { color: red; }
       25%  { color: orange; }
@@ -69,17 +99,10 @@
       75%  { color: cyan; }
       100% { color: red; }
     }
-    .scroll-track span {
-      animation: colorCycle 4s linear infinite;
-    }
-
-    .truck svg {
-      height: 40px;
-      margin-right: 12px;
-    }
+    .scroll-track span { animation: colorCycle 4s linear infinite; }
+    .truck svg { height: 40px; margin-right: 12px; }
   </style>
 
-  <!-- Google Maps JS API with Places + Geometry -->
   <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCLJtsETdc-9JYoDpN9pua3Thz1rBjGmBc&libraries=geometry,places&callback=initMap"
     defer>
@@ -87,27 +110,27 @@
 </head>
 <body>
   <div id="controls">
-    <!-- Zone lookup (origin) -->
     <form onsubmit="lookupZone(); return false;">
       <input id="address" type="text" placeholder="Enter NZ address">
       <button type="submit">Find Zone</button>
     </form>
 
-    <!-- Destination for route -->
     <form onsubmit="calcRoute(); return false;">
       <input id="to" type="text" placeholder="Enter destination address">
       <button type="submit">Get Route</button>
     </form>
 
-    <!-- 35km toggle -->
-    <button id="radiusToggle">35km button</button>
+    <label class="switch">
+      <input type="checkbox" id="radiusToggle">
+      <span class="slider"></span>
+    </label>
+    <span>35km button</span>
 
     <p id="result"></p>
   </div>
 
   <div id="map"></div>
 
-  <!-- Scrolling footer with red truck SVG facing left -->
   <div class="scroll-text">
     <div class="scroll-track">
       <span class="truck">
@@ -138,9 +161,8 @@
     let directionsService, directionsRenderer;
     let startLocation = null;
     let startZone = null;
-    let currentMarker = null; 
+    let currentMarker = null;
     let branchCircles = [];
-    let radiusVisible = false;
 
     const branchLocations = [
       {lat: -36.7512, lng: 174.7062, title: "200 Bush Road, Albany"},
@@ -171,10 +193,8 @@
       directionsService = new google.maps.DirectionsService();
       directionsRenderer = new google.maps.DirectionsRenderer({ map: map });
 
-      const inputOrigin = document.getElementById("address");
-      autocompleteOrigin = new google.maps.places.Autocomplete(inputOrigin, { componentRestrictions: { country: "nz" } });
-      const inputDest = document.getElementById("to");
-      autocompleteDest = new google.maps.places.Autocomplete(inputDest, { componentRestrictions: { country: "nz" } });
+      autocompleteOrigin = new google.maps.places.Autocomplete(document.getElementById("address"), { componentRestrictions: { country: "nz" }});
+      autocompleteDest = new google.maps.places.Autocomplete(document.getElementById("to"), { componentRestrictions: { country: "nz" }});
 
       autocompleteOrigin.addListener("place_changed", () => {
         const place = autocompleteOrigin.getPlace();
@@ -186,110 +206,121 @@
         checkZone(startLocation, true);
       });
 
-      inputOrigin.addEventListener("keydown", e => { if (e.key==="Enter"){ e.preventDefault(); lookupZone(); } });
-      inputDest.addEventListener("keydown", e => { if (e.key==="Enter"){ e.preventDefault(); calcRoute(); } });
+      document.getElementById("address").addEventListener("keydown", e => { if(e.key==="Enter"){e.preventDefault(); lookupZone();}});
+      document.getElementById("to").addEventListener("keydown", e => { if(e.key==="Enter"){e.preventDefault(); calcRoute();}});
 
-      // Load zones
-      fetch("zones.geojson", { cache: "no-cache" })
-        .then(res => res.json())
-        .then(data => {
-          data.features.forEach(feature => {
-            const coords = getCoords(feature.geometry);
-            const name = feature.properties.name || "Unnamed";
-            const polygon = new google.maps.Polygon({
-              paths: coords,
-              strokeColor: "#FF6666",
-              strokeOpacity: 0.6,
-              strokeWeight: 2,
-              fillColor: "#FF6666",
-              fillOpacity: 0.2,
-              map: map
-            });
-            polygons.push({ polygon, name });
+      // Zones
+      fetch("zones.geojson", { cache: "no-cache" }).then(r=>r.json()).then(data=>{
+        data.features.forEach(f=>{
+          const coords = getCoords(f.geometry);
+          const polygon = new google.maps.Polygon({
+            paths: coords, strokeColor:"#FF6666", strokeOpacity:0.6, strokeWeight:2, fillColor:"#FF6666", fillOpacity:0.2, map
           });
-        })
-        .catch(err => console.error("Error loading GeoJSON:", err));
-
-      // Branch markers
-      const buildingIcon = {
-        path: "M2,22 L2,10 L10,6 L18,10 L18,22 L2,22 Z M5,22 L5,14 L8,14 L8,22 Z M12,22 L12,14 L15,14 L15,22 Z M2,10 L10,6 L18,10",
-        fillColor: "#e10600", fillOpacity: 0.95, strokeColor: "#800000", strokeWeight: 1.5, scale: 1.6, anchor: new google.maps.Point(10,22)
-      };
-      branchLocations.forEach(branch => {
-        new google.maps.Marker({ position: { lat: branch.lat, lng: branch.lng }, map: map, icon: buildingIcon, title: branch.title });
+          polygons.push({ polygon, name:f.properties.name||"Unnamed" });
+        });
       });
 
-      // Consultant markers
-      consultantLocations.forEach(c => { new google.maps.Marker({ position:{lat:c.lat,lng:c.lng},map:map,label:"👤",title:c.title }); });
-
-      // 35km circles (invisible)
-      branchLocations.forEach(branch => {
+      // Branch markers & 35km radius circles
+      const buildingIcon = {
+        path: "M2,22 L2,10 L10,6 L18,10 L18,22 L2,22 Z M5,22 L5,14 L8,14 L8,22 Z M12,22 L12,14 L15,14 L15,22 Z M2,10 L10,6 L18,10",
+        fillColor: "#e10600", fillOpacity:0.95, strokeColor:"#800000", strokeWeight:1.5, scale:1.6, anchor:new google.maps.Point(10,22)
+      };
+      branchLocations.forEach(branch=>{
+        new google.maps.Marker({position:{lat:branch.lat,lng:branch.lng}, map, icon:buildingIcon, title:branch.title});
         const circle = new google.maps.Circle({
-          strokeColor: "#0000FF",
-          strokeOpacity: 0.8,
-          strokeWeight: 2,
+          center: {lat:branch.lat,lng:branch.lng},
+          radius: 35000,
           fillColor: "#0000FF",
           fillOpacity: 0.2,
-          map: null,
-          center: { lat: branch.lat, lng: branch.lng },
-          radius: 35000
+          strokeColor: "#0000FF",
+          strokeOpacity: 0.4,
+          strokeWeight: 2,
+          map: null
         });
         branchCircles.push(circle);
       });
 
-      document.getElementById("radiusToggle").addEventListener("click", () => {
-        radiusVisible = !radiusVisible;
-        branchCircles.forEach(c => c.setMap(radiusVisible ? map : null));
+      // Toggle switch
+      document.getElementById("radiusToggle").addEventListener("change", e => {
+        branchCircles.forEach(c=>c.setMap(e.target.checked?map:null));
+      });
+
+      // Consultants
+      consultantLocations.forEach(c=>{
+        new google.maps.Marker({position:{lat:c.lat,lng:c.lng}, map, label:"👤", title:c.title});
       });
     }
 
-    function placeMarker(location) { if(currentMarker) currentMarker.setMap(null); currentMarker = new google.maps.Marker({ position: location, map: map }); }
-    function getCoords(geometry) { if(geometry.type==="Polygon"){return geometry.coordinates[0].map(c=>({lat:c[1],lng:c[0]}));} else if(geometry.type==="MultiPolygon"){return geometry.coordinates.flat(2).map(c=>({lat:c[1],lng:c[0]}));} return []; }
+    function placeMarker(location) {
+      if(currentMarker) currentMarker.setMap(null);
+      currentMarker = new google.maps.Marker({position:location,map});
+    }
+
+    function getCoords(geometry) {
+      if(geometry.type==="Polygon") return geometry.coordinates[0].map(c=>({lat:c[1],lng:c[0]}));
+      if(geometry.type==="MultiPolygon") return geometry.coordinates.flat(2).map(c=>({lat:c[1],lng:c[0]}));
+      return [];
+    }
 
     function lookupZone() {
       const place = autocompleteOrigin.getPlace();
       const geocoder = new google.maps.Geocoder();
-      if(place && place.geometry){startLocation=place.geometry.location; placeMarker(startLocation); map.setCenter(startLocation); map.setZoom(12); checkZone(startLocation,true);}
-      else {
-        const address = document.getElementById("address").value;
-        geocoder.geocode({ address, componentRestrictions:{ country:"NZ"} }, (results,status)=>{
-          if(status==="OK" && results[0]){startLocation=results[0].geometry.location; placeMarker(startLocation); map.setCenter(startLocation); map.setZoom(12); checkZone(startLocation,true);}
-          else {document.getElementById("result").textContent="Geocode failed: "+status;}
+      if(place && place.geometry){
+        startLocation=place.geometry.location;
+        placeMarker(startLocation);
+        map.setCenter(startLocation);
+        map.setZoom(12);
+        checkZone(startLocation,true);
+      } else {
+        const address=document.getElementById("address").value;
+        geocoder.geocode({address, componentRestrictions:{country:"NZ"}},(results,status)=>{
+          if(status==="OK" && results[0]){
+            startLocation=results[0].geometry.location;
+            placeMarker(startLocation);
+            map.setCenter(startLocation);
+            map.setZoom(12);
+            checkZone(startLocation,true);
+          } else document.getElementById("result").textContent="Geocode failed: "+status;
         });
       }
     }
 
-    function checkZone(location, updateStart=false) {
+    function checkZone(location, updateStart=false){
       let found=null;
-      polygons.forEach(p => { if(google.maps.geometry.poly.containsLocation(location,p.polygon)) found=p.name; });
-      if(updateStart) startZone = found || null;
+      polygons.forEach(p=>{if(google.maps.geometry.poly.containsLocation(location,p.polygon)) found=p.name;});
+      if(updateStart) startZone=found||null;
 
-      if(found){
-        const repeated = Array(6).fill(`This address is inside ${found}`).map(msg=>`<span>${msg}</span>`).join("");
-        document.getElementById("result").innerHTML=repeated;
-      } else {
-        document.getElementById("result").textContent="This address is outside all zones";
-      }
+      // Check 35km radius
+      const within35km=branchLocations.some(branch=>{
+        const branchPos=new google.maps.LatLng(branch.lat,branch.lng);
+        return google.maps.geometry.spherical.computeDistanceBetween(location,branchPos)<=35000;
+      });
+
+      let repeated="";
+      if(found) repeated=Array(6).fill(`This address is inside ${found}`).map(m=>`<span>${m}</span>`).join("");
+      else repeated="This address is outside all zones";
+      if(within35km) repeated+="<br><span style='color:blue; font-weight:bold;'>Within 35km of a branch</span>";
+      else repeated+="<br><span style='color:red; font-weight:bold;'>Outside 35km of all branches</span>";
+      document.getElementById("result").innerHTML=repeated;
     }
 
-    function calcRoute() {
-      if(!startLocation){ document.getElementById("result").textContent="Please look up a starting address first."; return; }
-      const place = autocompleteDest.getPlace();
-      const geocoder = new google.maps.Geocoder();
-      if(place && place.geometry){ handleRoute(place.geometry.location); }
+    function calcRoute(){
+      if(!startLocation){document.getElementById("result").textContent="Please look up a starting address first."; return;}
+      const place=autocompleteDest.getPlace();
+      const geocoder=new google.maps.Geocoder();
+      if(place && place.geometry) handleRoute(place.geometry.location);
       else {
-        const to = document.getElementById("to").value;
-        geocoder.geocode({ address: to, componentRestrictions:{ country:"NZ"} }, (results,status)=>{
+        const to=document.getElementById("to").value;
+        geocoder.geocode({address:to, componentRestrictions:{country:"NZ"}},(results,status)=>{
           if(status==="OK" && results[0]) handleRoute(results[0].geometry.location);
           else document.getElementById("result").textContent="Destination geocode failed: "+status;
         });
       }
     }
 
-    function handleRoute(destLocation) {
+    function handleRoute(destLocation){
       let destZone=null;
-      polygons.forEach(p=>{ if(google.maps.geometry.poly.containsLocation(destLocation,p.polygon)) destZone=p.name; });
-
+      polygons.forEach(p=>{if(google.maps.geometry.poly.containsLocation(destLocation,p.polygon)) destZone=p.name;});
       const request={origin:startLocation,destination:destLocation,travelMode:google.maps.TravelMode.DRIVING};
       directionsService.route(request,(result,status)=>{
         if(status==="OK"){
@@ -300,19 +331,9 @@
           else if(startZone && !destZone) zoneInfo=` | Zones: <span style="color:red; font-weight:bold;">${startZone}</span> <span style="font-weight:bold; text-decoration:underline;">to</span> Outside zones`;
           else if(!startZone && destZone) zoneInfo=` | Zones: Outside zones <span style="font-weight:bold; text-decoration:underline;">to</span> <span style="color:red; font-weight:bold;">${destZone}</span>`;
           document.getElementById("result").innerHTML=`Distance: ${leg.distance.text} | Duration: ${leg.duration.text}${zoneInfo}`;
-        } else {document.getElementById("result").textContent="Route request failed: "+status;}
+        } else document.getElementById("result").textContent="Route request failed: "+status;
       });
     }
-
-    // Optional: check if address is within 35km of any branch
-    function isWithin35km(location) {
-      return branchLocations.some(branch=>{
-        const branchPos=new google.maps.LatLng(branch.lat,branch.lng);
-        const distance=google.maps.geometry.spherical.computeDistanceBetween(location,branchPos);
-        return distance<=35000;
-      });
-    }
-
   </script>
 </body>
 </html>
