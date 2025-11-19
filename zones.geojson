@@ -273,9 +273,12 @@
       }
     },
 
+{
+  "type": "FeatureCollection",
+  "features": [
     {
       "type": "Feature",
-      "properties": { "name": "Zone 5 Christchurch" },
+      "properties": { "name": "Zone 5 Christchurch", "type": "zone" },
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
@@ -287,10 +290,9 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
-      "properties": { "name": "Zone 3 Christchurch" },
+      "properties": { "name": "Zone 3 Christchurch", "type": "zone" },
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
@@ -302,10 +304,9 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
-      "properties": { "name": "Zone 4 Christchurch" },
+      "properties": { "name": "Zone 4 Christchurch", "type": "zone" },
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
@@ -317,10 +318,9 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
-      "properties": { "name": "Zone 1 Christchurch" },
+      "properties": { "name": "Zone 1 Christchurch", "type": "zone" },
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
@@ -333,10 +333,9 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
-      "properties": { "name": "Zone 2 Christchurch" },
+      "properties": { "name": "Zone 2 Christchurch", "type": "zone" },
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
@@ -347,7 +346,22 @@
           [172.63465387380933, -43.53306276762207]
         ]]
       }
-    }
+    },
 
+    /* --- Dunedin Region feature added here --- */
+    {
+      "type": "Feature",
+      "properties": { "name": "Dunedin Region", "type": "region" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [171.86222887116895, -44.86545865192243],
+          [168.53022813458472, -43.623705972400764],
+          [164.7634187918003, -46.31220712874726],
+          [168.89079958213745, -47.86995960409311],
+          [171.86222887116895, -44.86545865192243]
+        ]]
+      }
+    }
   ]
 }
