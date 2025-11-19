@@ -1,7 +1,6 @@
 {
   "type": "FeatureCollection",
   "features": [
-
     {
       "type": "Feature",
       "properties": { "name": "Zone 1 - North Shore" },
@@ -18,7 +17,6 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
       "properties": { "name": "Zone 2 - West Auckland" },
@@ -40,7 +38,6 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
       "properties": { "name": "Zone 3 - Central Auckland" },
@@ -58,7 +55,6 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
       "properties": { "name": "Zone 4 - South Auckland" },
@@ -82,7 +78,6 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
       "properties": { "name": "Zone 5 - Hibiscus Coast & Dairy Flat" },
@@ -98,7 +93,6 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
       "properties": { "name": "Zone 1 - Wellington" },
@@ -116,7 +110,6 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
       "properties": { "name": "Zone 2A - Wellington" },
@@ -139,7 +132,6 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
       "properties": { "name": "Zone 2B - Wellington" },
@@ -158,7 +150,6 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
       "properties": { "name": "Zone 3 - Wellington" },
@@ -173,7 +164,6 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
       "properties": { "name": "Zone 4 - Wellington" },
@@ -192,7 +182,6 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
       "properties": { "name": "Zone 5 - Wellington" },
@@ -207,7 +196,6 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
       "properties": { "name": "Zone 1 - Hamilton" },
@@ -223,7 +211,6 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
       "properties": { "name": "Zone 2 - Hamilton" },
@@ -239,7 +226,6 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
       "properties": { "name": "Zone 3 - Hamilton" },
@@ -256,7 +242,6 @@
         ]]
       }
     },
-
     {
       "type": "Feature",
       "properties": { "name": "Zone 4 - Hamilton" },
@@ -272,13 +257,9 @@
         ]]
       }
     },
-
-{
-  "type": "FeatureCollection",
-  "features": [
     {
       "type": "Feature",
-      "properties": { "name": "Zone 5 Christchurch", "type": "zone" },
+      "properties": { "name": "Zone 5 - Christchurch" },
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
@@ -292,7 +273,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "Zone 3 Christchurch", "type": "zone" },
+      "properties": { "name": "Zone 3 - Christchurch" },
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
@@ -306,7 +287,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "Zone 4 Christchurch", "type": "zone" },
+      "properties": { "name": "Zone 4 - Christchurch" },
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
@@ -320,7 +301,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "Zone 1 Christchurch", "type": "zone" },
+      "properties": { "name": "Zone 1 - Christchurch" },
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
@@ -335,7 +316,7 @@
     },
     {
       "type": "Feature",
-      "properties": { "name": "Zone 2 Christchurch", "type": "zone" },
+      "properties": { "name": "Zone 2 - Christchurch" },
       "geometry": {
         "type": "Polygon",
         "coordinates": [[
@@ -346,6 +327,6 @@
           [172.63465387380933, -43.53306276762207]
         ]]
       }
-    },
+    }
   ]
 }
