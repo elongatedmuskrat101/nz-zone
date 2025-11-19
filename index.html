@@ -18,7 +18,7 @@
       width: 320px;
       margin: 5px;
     }
-    #controls button {
+    #controls button, #toggle35km {
       font-size: 18px;
       padding: 12px 24px;
       margin: 5px;
@@ -99,6 +99,9 @@
       <button type="submit">Get Route</button>
     </form>
 
+    <!-- 35km toggle button -->
+    <button id="toggle35km">35km button</button>
+
     <p id="result"></p>
   </div>
 
@@ -136,6 +139,8 @@
     let startLocation = null;
     let startZone = null;
     let currentMarker = null; // single, replaceable marker
+    let branchCircles = []; // 35km circles around branches
+    let circlesVisible = false;
 
     // Branch coordinates
     const branchLocations = [
@@ -215,7 +220,7 @@
               strokeOpacity: 0.6,
               strokeWeight: 2,
               fillColor: "#FF6666",
-              fillOpacity: 0.2, // softer overlay
+              fillOpacity: 0.2,
               map: map
             });
             polygons.push({ polygon, name });
@@ -223,7 +228,7 @@
         })
         .catch(err => console.error("Error loading GeoJSON:", err));
 
-      // Mark branches with a building icon (SVG path)
+      // Mark branches with a building icon and create 35km circles
       const buildingIcon = {
         path: "M2,22 L2,10 L10,6 L18,10 L18,22 L2,22 Z M5,22 L5,14 L8,14 L8,22 Z M12,22 L12,14 L15,14 L15,22 Z M2,10 L10,6 L18,10",
         fillColor: "#e10600",
@@ -241,6 +246,19 @@
           icon: buildingIcon,
           title: branch.title
         });
+
+        // Create circle, invisible by default
+        const circle = new google.maps.Circle({
+          strokeColor: "#0000FF",
+          strokeOpacity: 0.5,
+          strokeWeight: 2,
+          fillColor: "#0000FF",
+          fillOpacity: 0.2,
+          map: null, // hidden initially
+          center: { lat: branch.lat, lng: branch.lng },
+          radius: 35000
+        });
+        branchCircles.push(circle);
       });
 
       // Mark consultants with person emoji labels
@@ -250,6 +268,14 @@
           map: map,
           label: "👤",
           title: c.title
+        });
+      });
+
+      // 35km toggle button
+      document.getElementById("toggle35km").addEventListener("click", () => {
+        circlesVisible = !circlesVisible;
+        branchCircles.forEach(c => {
+          c.setMap(circlesVisible ? map : null);
         });
       });
     }
@@ -296,7 +322,6 @@
       }
     }
 
-    // If updateStart is true, also set startZone
     function checkZone(location, updateStart = false) {
       let found = null;
       polygons.forEach(p => {
@@ -346,7 +371,6 @@
     }
 
     function handleRoute(destLocation) {
-      // Determine destination zone
       let destZone = null;
       polygons.forEach(p => {
         if (google.maps.geometry.poly.containsLocation(destLocation, p.polygon)) {
