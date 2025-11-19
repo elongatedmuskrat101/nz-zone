@@ -4,78 +4,35 @@
   <meta charset="utf-8">
   <title>NZ Zone Lookup</title>
   <style>
-    /* Map container */
     #map {
       height: 80vh;
       width: 100%;
     }
-
-    /* Controls container */
     #controls {
       margin: 10px;
       text-align: center;
     }
-
-    /* Search bar (address input) */
     #address {
       font-size: 18px;
       padding: 12px;
       width: 400px;
     }
-
-    /* Find Zone button */
     #controls button {
       font-size: 18px;
       padding: 12px 24px;
       margin-left: 10px;
       cursor: pointer;
     }
-
-    /* Result text */
     #result {
       font-size: 20px;
       font-weight: bold;
       margin-top: 10px;
       color: #333;
-      white-space: nowrap;
-      overflow: hidden;
       text-align: center;
     }
-
-    /* Scrolling footer text with truck */
-    .scroll-text {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: rgba(255,255,255,0.95);
-      padding: 6px 0;
-      text-align: center;
-      font-size: 28px;
-      font-weight: bold;
-      white-space: nowrap;
-      overflow: hidden;
-      z-index: 9999;
-    }
-    .scroll-track {
-      display: inline-block;
-      white-space: nowrap;
-      will-change: transform;
-      animation: moveLeft 60s linear infinite;
-      padding-left: 100%;
-    }
-    @keyframes moveLeft {
-      0%   { transform: translateX(100%); }
-      100% { transform: translateX(-100%); }
-    }
-    .truck { font-size: 32px; margin-right: 12px; }
-    .green  { color: green; }
-    .blue   { color: blue; }
-    .purple { color: purple; }
-    .red    { color: red; }
   </style>
 
-  <!-- Load Google Maps JS API -->
+  <!-- Google Maps JS API -->
   <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCLJtsETdc-9JYoDpN9pua3Thz1rBjGmBc&libraries=geometry&callback=initMap"
     defer>
@@ -92,21 +49,9 @@
 
   <div id="map"></div>
 
-  <!-- Fixed footer scrolling text -->
-  <div class="scroll-text">
-    <div class="scroll-track">
-      <span class="truck">🚚</span>
-      <span class="green">m</span><span class="blue">a</span><span class="purple">d</span><span class="red">e</span>
-      <span class="green"> </span><span class="blue">b</span><span class="purple">y</span><span class="red"> </span>
-      <span class="green">t</span><span class="blue">a</span><span class="purple">n</span><span class="red">n</span>
-      <span class="green">e</span><span class="blue">r</span>
-    </div>
-  </div>
-
   <script>
     let map;
-    let zones = [];
-    let regions = [];
+    let polygons = [];
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
@@ -127,34 +72,34 @@
         .then(res => res.json())
         .then(data => {
           data.features.forEach(feature => {
-            const coords = feature.geometry.coordinates[0].map(c => ({ lat: c[1], lng: c[0] }));
+            const coords = getCoords(feature.geometry);
             const name = feature.properties.name || "Unnamed";
 
-            // Check if it's a region
-            if (feature.properties.type === "region") {
-              const polygon = new google.maps.Polygon({
-                paths: coords,
-                strokeOpacity: 0,
-                fillOpacity: 0,
-                map: map
-              });
-              regions.push({ polygon, name });
-            } else {
-              // It's a zone
-              const polygon = new google.maps.Polygon({
-                paths: coords,
-                strokeColor: "#FF0000",
-                strokeOpacity: 0.8,
-                strokeWeight: 2,
-                fillColor: "#FF0000",
-                fillOpacity: 0.35,
-                map: map
-              });
-              zones.push({ polygon, name });
-            }
+            const polygon = new google.maps.Polygon({
+              paths: coords,
+              strokeColor: "#FF0000",
+              strokeOpacity: 0.8,
+              strokeWeight: 2,
+              fillColor: "#FF0000",
+              fillOpacity: 0.35,
+              map: map
+            });
+
+            polygons.push({ polygon, name });
           });
         })
         .catch(err => console.error("Error loading GeoJSON:", err));
+    }
+
+    // Handle Polygon and MultiPolygon
+    function getCoords(geometry) {
+      if (geometry.type === "Polygon") {
+        return geometry.coordinates[0].map(c => ({ lat: c[1], lng: c[0] }));
+      } else if (geometry.type === "MultiPolygon") {
+        // Flatten all rings into one array
+        return geometry.coordinates.flat(2).map(c => ({ lat: c[1], lng: c[0] }));
+      }
+      return [];
     }
 
     function lookupZone() {
@@ -172,33 +117,15 @@
         map.setCenter(location);
         map.setZoom(12);
 
-        let zoneFound = null;
-        let regionFound = null;
-
-        // Check zones
-        zones.forEach(z => {
-          if (google.maps.geometry.poly.containsLocation(location, z.polygon)) {
-            zoneFound = z.name;
+        let found = null;
+        polygons.forEach(p => {
+          if (google.maps.geometry.poly.containsLocation(location, p.polygon)) {
+            found = p.name;
           }
         });
 
-        // Check regions
-        regions.forEach(r => {
-          if (google.maps.geometry.poly.containsLocation(location, r.polygon)) {
-            regionFound = r.name;
-          }
-        });
-
-        let resultText = "";
-        if (zoneFound) {
-          resultText = `This address is inside ${zoneFound}`;
-        } else if (regionFound) {
-          resultText = `This address is outside all zones - ${regionFound} region`;
-        } else {
-          resultText = "This address is outside all zones and regions";
-        }
-
-        document.getElementById("result").textContent = resultText.repeat(20);
+        document.getElementById("result").textContent =
+          found ? `This address is inside ${found}` : "This address is outside all zones";
       });
     }
   </script>
